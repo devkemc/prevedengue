@@ -1,113 +1,196 @@
+'use client'
+import {useEffect, useMemo, useState} from "react";
 import Image from "next/image";
+import {compileNonPath} from "next/dist/shared/lib/router/utils/prepare-destination";
 
 export default function Home() {
+  const [images, setImages] = useState([]);
+  const [complaints, setComplaints] = useState([])
+  const [imagesPath, setImagesPath] = useState([]);
+  
+  useEffect(() => {
+    (async () =>{
+      await getComplaints();
+    })()
+    
+  }, []);
+  
+  const getComplaints = async () => {
+    const response = await fetch('http://localhost:3000/api/complaint');
+    const data = await response.json();
+    setComplaints(data);
+  }
+  
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    file.id = Math.random();
+    console.log(file);
+    setImages((prevImages) => [...prevImages, file]);
+  };
+  
+  const handleRemoveImage = (id) => {
+    setImages((prevImages) => prevImages.filter((image,) => image.id !== id));
+  };
+  
+  const handleClick = (e: Event) => {
+    e.preventDefault();
+    const formData = new FormData();
+    images.forEach((image) => {
+      formData.append('images', image);
+    });
+    const form = new FormData(e.target);
+    formData.append('name', form.get('name') as string);
+    formData.append('address', form.get('address') as string);
+    formData.append('description', form.get('description') as string);
+    formData.append('date', form.get('date') as string);
+    formData.append('comments', form.get('comments') as string);
+    
+    fetch('http://localhost:3000/api/complaint', {
+      method: 'POST',
+      body: formData,
+    }).then((response) => {
+      response.json().then((data) => {
+        getComplaints().then(() => {
+          setImages([]);
+        })
+      });
+      
+    });
+  }
+  const imagesList = useMemo(() => {
+    console.log("memo imagesPath")
+    if (imagesPath.length === 0) {
+      return null;
+    }
+    return (
+      <div>
+        <h1>Images uploads</h1>
+        {imagesPath.map((image) => (
+          <div key={image} style={{display: 'flex', alignItems: 'center', marginBottom: '10px'}}>
+            <Image src={image} alt={`Imagem ${image}`}
+                   width={200} height={200}/>
+          </div>
+        ))}
+      </div>
+    );
+  }, [imagesPath])
+  const imagesUploaded = useMemo(() => {
+    console.log("memo images")
+    return (
+      <div>
+        {images.map((image) => (
+          <div key={image.id} style={{display: 'flex', alignItems: 'center', marginBottom: '10px'}}>
+            <img src={URL.createObjectURL(image)} alt={`Imagem ${image.name}`}
+                 style={{maxWidth: '200px', maxHeight: '200px', marginRight: '10px'}}/>
+            <button onClick={() => handleRemoveImage(image.id)}>Remover</button>
+          </div>
+        ))}
+      </div>
+    )
+  }, [images])
+  
+  if (imagesList) {
+    return imagesList
+  }
+  
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    <main>
+      <div className="container mx-auto">
+        <h1 className="text-3xl font-semibold text-center mb-8 text-gray-800">PreveDengue: Prevenção e Informação</h1>
+        
+        <div className="mb-8">
+          <h2 className="text-2xl font-semibold mb-4 text-gray-700">Nossa missão</h2>
+          <p className='text-gray-600'>Proteger a comunidade da cidade de <b className='text-gray-800'>Santo
+            Estevão</b> contra a propagação da dengue, fornecendo informações essenciais e facilitando a denúncia de
+            focos de mosquito.</p>
         </div>
+        
+        <div>
+          <h2>
+            Denuncias:
+          </h2>
+          <div>
+            {complaints.length !== 0 && complaints.map((complaint) => (
+              <div key={complaint.id}>
+                <p>{complaint.name}</p>
+                <p>{complaint.address}</p>
+                <p>{complaint.descriptionForLocale}</p>
+                <p>{complaint.dataObservation}</p>
+                <p>{complaint.additionalComments}</p>
+                {complaint.images.map((image) => (
+                  <Image key={image.id} src={image.url} alt={`Imagem ${image}`}
+                         width={200} height={200}/>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        <section className="bg-yellow-50 p-6 md:p-10">
+          <h2 className="text-2xl font-semibold mb-4 text-gray-700">Denuncie Focos de Mosquito</h2>
+          <p className='text-gray-600'>Ajude-nos a Combater a Dengue! Utilize o formulário abaixo para denunciar
+            qualquer foco de mosquito que você tenha observado em sua comunidade. Sua contribuição é crucial para manter
+            nossa região segura.</p>
+          
+          <form className="mt-4" onSubmit={handleClick}>
+            <div className="mb-4">
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="name">Nome:</label>
+              <input
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                id="name" name='name' type="text" placeholder="Nome"/>
+            </div>
+            <div className="mb-4">
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="address">Endereço do Foco de
+                Mosquito:</label>
+              <input
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                id="address" name='address' type="text" placeholder="Endereço"/>
+            </div>
+            <div className="mb-4">
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="description">Descrição do
+                Local:</label>
+              <textarea
+                name='description'
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                id="description" placeholder="Descrição"></textarea>
+            </div>
+            <div className="mb-4">
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="date">Data da Observação:</label>
+              <input
+                name='date'
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                id="date" type="date"/>
+            </div>
+            <div className="mb-4">
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="comments">Comentários
+                Adicionais:</label>
+              <textarea
+                name='comments'
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                id="comments" placeholder="Comentários"></textarea>
+            </div>
+            <div className="mb-4">
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="file">Enviar Foto
+                (opcional):</label>
+              <input id='file' type="file"
+                     className='shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'
+                     accept="image/*" multiple onChange={handleImageChange}/>
+              {imagesUploaded}
+            </div>
+            <button
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+              type="submit">Enviar
+            </button>
+          </form>
+        </section>
+        <div>
+          <h2 className="text-2xl font-semibold mb-4">Informações Adicionais e Recursos</h2>
+          <p>Prevenção: Dicas práticas para evitar a propagação da dengue em sua área.</p>
+          <p>Recursos: Links úteis para mais informações sobre a dengue e outras doenças transmitidas por mosquitos.</p>
+        </div>
+      
       </div>
-
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
+    
     </main>
   );
 }
