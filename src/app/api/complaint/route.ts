@@ -1,12 +1,12 @@
 import {ComplaintRepository} from "@/model/repository/complaint-repository";
 import {Connection} from "@/model/database/connection";
-import {UploadImageLocal} from "@/model/service/upload-image-local";
 import {ComplaintService} from "@/model/service/complaint-service";
 import {Image} from "@/model/entity/image";
 import {ComplaintEntity} from "@/model/entity/complaintEntity";
+import {UploadImageBlobVercel} from "@/model/service/upload-image-blob-vercel";
 
 const repository = new ComplaintRepository(Connection.getInstance());
-const complaintService = new ComplaintService(repository, new UploadImageLocal());
+const complaintService = new ComplaintService(repository, new UploadImageBlobVercel());
 
 export async function GET() {
   const complaints = await complaintService.getComplaints();

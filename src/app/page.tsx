@@ -3,12 +3,14 @@ import {FormEvent, FormEventHandler, useEffect, useMemo, useState} from "react";
 import Image from "next/image";
 import {ComplaintCard} from "@/components/ComplaintCard";
 import {Spinner} from "@/components/Spinner";
+import {Skeleton} from "@/components/Skeleton";
 
 export default function Home() {
   const [images, setImages] = useState([]);
   const [complaints, setComplaints] = useState([])
   const [imagesPath, setImagesPath] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [sendRequest, setSendRequest] = useState(false);
   
   useEffect(() => {
     (async () => {
@@ -35,6 +37,7 @@ export default function Home() {
   };
   
   const handleClick: FormEventHandler<HTMLFormElement> = (e: FormEvent) => {
+    setSendRequest(true)
     e.preventDefault();
     const formData = new FormData();
     images.forEach((image) => {
@@ -54,6 +57,13 @@ export default function Home() {
       response.json().then((data) => {
         getComplaints().then(() => {
           setImages([]);
+          form.set('name', '');
+          form.set('address', '');
+          form.set('description', '');
+          form.set('date', '');
+          form.set('comments', '');
+          form.set('current_image', '');
+          setSendRequest(false);
         })
       });
       
@@ -88,11 +98,9 @@ export default function Home() {
       </div>
     )
   }, [images])
-  
   if (imagesList) {
     return imagesList
   }
-  
   return (
     <main>
       <div className="container mx-auto">
@@ -112,11 +120,11 @@ export default function Home() {
           <div>
             {complaints.length !== 0 ? complaints.map((complaint) => (
               <ComplaintCard key={complaint.id} complaint={complaint}/>
-            )) : loading ? <Spinner/> : (<p>Nenhuma denúncia encontrada</p>)}
+            )) : loading ? <Skeleton/> : (<p>Nenhuma denúncia encontrada</p>)}
           </div>
         </div>
         
-        <section className="bg-yellow-50 p-6 md:p-10">
+        {!sendRequest ? (<section className="bg-yellow-50 p-6 md:p-10">
           <h2 className="text-2xl font-semibold mb-4 text-gray-700">Denuncie Focos de Mosquito</h2>
           <p className='text-gray-600'>Ajude-nos a Combater a Dengue! Utilize o formulário abaixo para denunciar
             qualquer foco de mosquito que você tenha observado em sua comunidade. Sua contribuição é crucial para manter
@@ -163,16 +171,18 @@ export default function Home() {
               <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="file">Enviar Foto
                 (opcional):</label>
               <input id='file' type="file"
+                     name='current_image'
                      className='shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'
                      accept="image/*" multiple onChange={handleImageChange}/>
               {imagesUploaded}
             </div>
             <button
+              disabled={sendRequest}
               className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
               type="submit">Enviar
             </button>
           </form>
-        </section>
+        </section>) : <Spinner/>}
       </div>
     
     </main>

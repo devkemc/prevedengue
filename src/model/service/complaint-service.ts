@@ -17,8 +17,10 @@ export class ComplaintService {
       image.pathUpload = `./public${image.url}`
       return this.uploadImage.upload(image);
     })
+    const paths = await Promise.all(promises);
     await this.repository.createComplaint(complaint);
-    return await Promise.all(promises);
+    return paths;
+   
   }
   
   async getComplaints() {
