@@ -135,6 +135,7 @@ export default function Home() {
             <div className="mb-4">
               <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="name">Nome:</label>
               <input
+                required
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 id="name" name='name' type="text" placeholder="Nome"/>
             </div>
@@ -142,6 +143,7 @@ export default function Home() {
               <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="address">Endereço do Foco de
                 Mosquito:</label>
               <input
+                required
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 id="address" name='address' type="text" placeholder="Endereço"/>
             </div>
@@ -149,6 +151,7 @@ export default function Home() {
               <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="description">Descrição do
                 Local:</label>
               <textarea
+                required
                 name='description'
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 id="description" placeholder="Descrição"></textarea>
@@ -156,6 +159,7 @@ export default function Home() {
             <div className="mb-4">
               <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="date">Data da Observação:</label>
               <input
+                required
                 name='date'
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 id="date" type="date"/>
@@ -172,6 +176,7 @@ export default function Home() {
               <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="file">Enviar Foto
                 (opcional):</label>
               <input id='file' type="file"
+                     required
                      name='current_image'
                      className='shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline'
                      accept="image/*" multiple onChange={handleImageChange}/>
