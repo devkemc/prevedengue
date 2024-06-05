@@ -1,7 +1,5 @@
 import React from "react";
 import Image from "next/image";
-import {LinkNavigation} from "@/components/link-navigation";
-import Link from "next/link";
 
 export function Footer(): React.JSX.Element {
   return (

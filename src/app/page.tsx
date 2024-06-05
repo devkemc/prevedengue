@@ -1,13 +1,13 @@
 'use client'
-import {FormEvent, FormEventHandler, useEffect, useMemo, useState} from "react";
+import {ChangeEvent, ChangeEventHandler, FormEvent, FormEventHandler, useEffect, useMemo, useState} from "react";
 import Image from "next/image";
 import {ComplaintCard} from "@/components/ComplaintCard";
 import {Spinner} from "@/components/Spinner";
 import {Skeleton} from "@/components/Skeleton";
-
+import {Complaint} from "@/types/complaint";
 export default function Home() {
-  const [images, setImages] = useState([]);
-  const [complaints, setComplaints] = useState([])
+  const [images, setImages] = useState<Array<File>>([] as File[]);
+  const [complaints, setComplaints] = useState<Array<Complaint>>([])
   const [imagesPath, setImagesPath] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sendRequest, setSendRequest] = useState(false);
@@ -26,24 +26,24 @@ export default function Home() {
     setComplaints(data);
   }
   
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    file.id = Math.random();
+  const handleImageChange: ChangeEventHandler<HTMLInputElement> = (e: ChangeEvent<HTMLInputElement>) => {
+    if (!e?.target?.files) return
+    const file = e.target?.files[0];
     setImages((prevImages) => [...prevImages, file]);
   };
   
-  const handleRemoveImage = (id) => {
-    setImages((prevImages) => prevImages.filter((image,) => image.id !== id));
+  const handleRemoveImage = (id: string) => {
+    setImages((prevImages) => prevImages.filter((image) => `${image.name}${image.lastModified}` !== id));
   };
   
-  const handleClick: FormEventHandler<HTMLFormElement> = (e: FormEvent) => {
+  const handleClick: FormEventHandler<HTMLFormElement> = (e: FormEvent<HTMLFormElement>) => {
     setSendRequest(true)
     e.preventDefault();
     const formData = new FormData();
     images.forEach((image) => {
       formData.append('images', image);
     });
-    const form = new FormData(e.target);
+    const form = new FormData(e.target as HTMLFormElement);
     formData.append('name', form.get('name') as string);
     formData.append('address', form.get('address') as string);
     formData.append('description', form.get('description') as string);
@@ -89,10 +89,11 @@ export default function Home() {
     return (
       <div>
         {images.map((image) => (
-          <div key={image.id} style={{display: 'flex', alignItems: 'center', marginBottom: '10px'}}>
+          <div key={`${image.name}${image.lastModified}`}
+               style={{display: 'flex', alignItems: 'center', marginBottom: '10px'}}>
             <img src={URL.createObjectURL(image)} alt={`Imagem ${image.name}`}
                  style={{width: '200px', height: '200px', marginRight: '10px', objectFit: "cover"}}/>
-            <button onClick={() => handleRemoveImage(image.id)}>Remover</button>
+            <button onClick={() => handleRemoveImage(`${image.name}${image.lastModified}`)}>Remover</button>
           </div>
         ))}
       </div>

@@ -1,4 +1,9 @@
-export const ComplaintCard = ({complaint}) => {
+import {Complaint} from "@/types/complaint";
+
+type ComplaintCardProps = {
+  complaint: Complaint;
+}
+export const ComplaintCard = ({complaint}:ComplaintCardProps) => {
   return (
     <div className="bg-white shadow-lg rounded-lg p-6 mb-6">
       <p className="text-2xl font-bold text-blue-800 mb-4">Nome do denunciante: {complaint.name}</p>
