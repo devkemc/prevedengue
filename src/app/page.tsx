@@ -1,22 +1,25 @@
 'use client'
-import {useEffect, useMemo, useState} from "react";
+import {FormEvent, FormEventHandler, useEffect, useMemo, useState} from "react";
 import Image from "next/image";
-import {compileNonPath} from "next/dist/shared/lib/router/utils/prepare-destination";
+import {ComplaintCard} from "@/components/ComplaintCard";
+import {Spinner} from "@/components/Spinner";
 
 export default function Home() {
   const [images, setImages] = useState([]);
   const [complaints, setComplaints] = useState([])
   const [imagesPath, setImagesPath] = useState([]);
+  const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    (async () =>{
+    (async () => {
       await getComplaints();
+      setLoading(false)
     })()
     
   }, []);
   
   const getComplaints = async () => {
-    const response = await fetch('http://localhost:3000/api/complaint');
+    const response = await fetch('/api/complaint');
     const data = await response.json();
     setComplaints(data);
   }
@@ -24,7 +27,6 @@ export default function Home() {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     file.id = Math.random();
-    console.log(file);
     setImages((prevImages) => [...prevImages, file]);
   };
   
@@ -32,7 +34,7 @@ export default function Home() {
     setImages((prevImages) => prevImages.filter((image,) => image.id !== id));
   };
   
-  const handleClick = (e: Event) => {
+  const handleClick: FormEventHandler<HTMLFormElement> = (e: FormEvent) => {
     e.preventDefault();
     const formData = new FormData();
     images.forEach((image) => {
@@ -45,7 +47,7 @@ export default function Home() {
     formData.append('date', form.get('date') as string);
     formData.append('comments', form.get('comments') as string);
     
-    fetch('http://localhost:3000/api/complaint', {
+    fetch('/api/complaint', {
       method: 'POST',
       body: formData,
     }).then((response) => {
@@ -58,7 +60,6 @@ export default function Home() {
     });
   }
   const imagesList = useMemo(() => {
-    console.log("memo imagesPath")
     if (imagesPath.length === 0) {
       return null;
     }
@@ -68,20 +69,19 @@ export default function Home() {
         {imagesPath.map((image) => (
           <div key={image} style={{display: 'flex', alignItems: 'center', marginBottom: '10px'}}>
             <Image src={image} alt={`Imagem ${image}`}
-                   width={200} height={200}/>
+                   width={400} height={400}/>
           </div>
         ))}
       </div>
     );
   }, [imagesPath])
   const imagesUploaded = useMemo(() => {
-    console.log("memo images")
     return (
       <div>
         {images.map((image) => (
           <div key={image.id} style={{display: 'flex', alignItems: 'center', marginBottom: '10px'}}>
             <img src={URL.createObjectURL(image)} alt={`Imagem ${image.name}`}
-                 style={{maxWidth: '200px', maxHeight: '200px', marginRight: '10px'}}/>
+                 style={{width: '200px', height: '200px', marginRight: '10px', objectFit: "cover"}}/>
             <button onClick={() => handleRemoveImage(image.id)}>Remover</button>
           </div>
         ))}
@@ -110,19 +110,9 @@ export default function Home() {
             Denuncias:
           </h2>
           <div>
-            {complaints.length !== 0 && complaints.map((complaint) => (
-              <div key={complaint.id}>
-                <p>{complaint.name}</p>
-                <p>{complaint.address}</p>
-                <p>{complaint.descriptionForLocale}</p>
-                <p>{complaint.dataObservation}</p>
-                <p>{complaint.additionalComments}</p>
-                {complaint.images.map((image) => (
-                  <Image key={image.id} src={image.url} alt={`Imagem ${image}`}
-                         width={200} height={200}/>
-                ))}
-              </div>
-            ))}
+            {complaints.length !== 0 ? complaints.map((complaint) => (
+              <ComplaintCard key={complaint.id} complaint={complaint}/>
+            )) : loading ? <Spinner/> : (<p>Nenhuma denúncia encontrada</p>)}
           </div>
         </div>
         
@@ -183,12 +173,6 @@ export default function Home() {
             </button>
           </form>
         </section>
-        <div>
-          <h2 className="text-2xl font-semibold mb-4">Informações Adicionais e Recursos</h2>
-          <p>Prevenção: Dicas práticas para evitar a propagação da dengue em sua área.</p>
-          <p>Recursos: Links úteis para mais informações sobre a dengue e outras doenças transmitidas por mosquitos.</p>
-        </div>
-      
       </div>
     
     </main>

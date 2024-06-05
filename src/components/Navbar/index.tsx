@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import {LinkNavigation} from "@/components/link-navigation";
+import {LinkNavigation} from "@/components/LinkNavigation";
 import {useEffect, useState} from "react";
 import Image from "next/image";
 import {IoMenu} from "react-icons/io5";
@@ -60,12 +60,6 @@ export function Navbar() {
                 title="Link para o a pagína de Início"
               >
                 INÍCIO
-              </LinkNavigation>
-              <LinkNavigation
-                href="/#services"
-                title="Link para seção de Serviços"
-              >
-                PREVENÇÃO
               </LinkNavigation>
             </ul>
           </div>
